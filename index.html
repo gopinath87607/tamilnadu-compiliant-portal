@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tamil Nadu Complaint Portal</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<aside id="sidebar">
+  <div class="brand">
+    <div class="tn-emblem">TN</div>
+    <h5>Tamil Nadu<br/>Complaint Portal</h5>
+    <small>tamilnadu.gov.in</small>
+  </div>
+  <nav>
+    <a class="nav-link active" data-page="dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a class="nav-link" data-page="map"><i class="fa-solid fa-map-location-dot"></i> Complaint Map</a>
+    <a class="nav-link" data-page="complaints"><i class="fa-solid fa-list-check"></i> All Complaints</a>
+    <a class="nav-link" data-page="submit"><i class="fa-solid fa-circle-plus"></i> Submit Complaint</a>
+    <a class="nav-link" data-page="districts"><i class="fa-solid fa-building-columns"></i> District Overview</a>
+  </nav>
+  <div class="sidebar-footer">&copy; <span id="sidebar-year"></span> Govt. of Tamil Nadu<br/>All rights reserved</div>
+</aside>
+
+<header id="topbar">
+  <div class="d-flex align-items-center gap-3">
+    <button id="hamburger-btn"><i class="fa-solid fa-bars"></i></button>
+    <span id="page-title" class="page-title">Dashboard &mdash; Overview</span>
+  </div>
+  <div class="topbar-right">
+    <span style="font-size:.78rem;color:#6b7280"><i class="fa-solid fa-circle" style="color:#22c55e;font-size:.5rem"></i> Live Portal</span>
+    <button class="btn-submit" style="padding:7px 16px;font-size:.8rem" onclick="showPage('submit')"><i class="fa-solid fa-plus"></i> New Complaint</button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- DASHBOARD -->
+  <section id="page-dashboard" class="page active">
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="icon" style="background:#e0e7ff"><i class="fa-solid fa-file-lines" style="color:#4f46e5"></i></div><div><div class="count" id="stat-total">&mdash;</div><div class="label">Total Complaints</div></div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="icon" style="background:#fee2e2"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444"></i></div><div><div class="count" id="stat-open">&mdash;</div><div class="label">Open</div></div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="icon" style="background:#fef3c7"><i class="fa-solid fa-spinner" style="color:#f59e0b"></i></div><div><div class="count" id="stat-inprog">&mdash;</div><div class="label">In Progress</div></div></div></div>
+      <div class="col-6 col-md-3"><div class="stat-card"><div class="icon" style="background:#dcfce7"><i class="fa-solid fa-circle-check" style="color:#22c55e"></i></div><div><div class="count" id="stat-resolved">&mdash;</div><div class="label">Resolved</div></div></div></div>
+    </div>
+    <div class="section-card mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-2"><h6 class="mb-0">Overall Resolution Rate</h6><span id="stat-pct" style="font-size:1.1rem;font-weight:800;color:var(--tn-blue)">&mdash;</span></div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="resolve-progress" style="width:0%"></div></div>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-5"><div class="section-card" style="height:320px;overflow-y:auto"><h6>Complaints by Category</h6><div id="category-chart"></div></div></div>
+      <div class="col-md-3"><div class="section-card" style="height:320px;overflow-y:auto"><h6>Top Districts by Complaints</h6><div id="top-districts"></div></div></div>
+      <div class="col-md-4"><div class="section-card" style="height:320px"><h6>Quick Actions</h6><div class="d-flex flex-column gap-3 mt-2">
+        <button class="btn-submit w-100" style="padding:12px" onclick="showPage('submit')"><i class="fa-solid fa-circle-plus me-2"></i> Submit a Complaint</button>
+        <button class="btn-submit w-100" style="padding:12px;background:var(--tn-blue)" onclick="showPage('map')"><i class="fa-solid fa-map-location-dot me-2"></i> View Complaint Map</button>
+        <button class="btn-submit w-100" style="padding:12px;background:#6b7280" onclick="showPage('complaints')"><i class="fa-solid fa-list-check me-2"></i> Manage Complaints</button>
+        <button class="btn-submit w-100" style="padding:12px;background:#0891b2" onclick="showPage('districts')"><i class="fa-solid fa-building-columns me-2"></i> District Overview</button>
+      </div></div></div>
+    </div>
+    <div class="section-card mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0">Recent Complaints</h6><a style="font-size:.8rem;color:var(--tn-accent);cursor:pointer" onclick="showPage('complaints')">View all &rarr;</a></div>
+      <div style="overflow-x:auto"><table class="complaints-table"><thead><tr><th>Status</th><th>Title</th><th>District</th><th>Category</th><th>Date</th></tr></thead><tbody id="recent-complaints"><tr><td colspan="5" class="text-center py-4 text-muted">Loading...</td></tr></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- MAP -->
+  <section id="page-map" class="page">
+    <div class="row g-3 mb-3"><div class="col-12"><div style="font-size:.84rem;color:#6b7280;background:#fff;padding:10px 16px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.06)"><i class="fa-solid fa-circle-info" style="color:var(--tn-accent)"></i> <strong>Bubble Map:</strong> Circle size = number of complaints. <span style="color:#ef4444">&#9679;</span> Mostly open &nbsp;<span style="color:#f59e0b">&#9679;</span> In progress &nbsp;<span style="color:#22c55e">&#9679;</span> Mostly resolved. Click any bubble to drill into ward level.</div></div></div>
+    <div id="map-container">
+      <div id="main-map"></div>
+      <div id="map-breadcrumb"></div>
+      <div id="map-legend">
+        <div style="font-weight:700;margin-bottom:6px;font-size:.78rem">Legend</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Mostly Open</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> In Progress</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div> Mostly Resolved</div>
+        <div style="margin-top:8px;border-top:1px solid #e5e7eb;padding-top:6px;font-size:.72rem;color:#6b7280">Bubble size = complaint count</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPLAINTS LIST -->
+  <section id="page-complaints" class="page">
+    <div class="filter-bar mb-3">
+      <div><label>District</label><select id="filter-district"><option value="">All Districts</option></select></div>
+      <div><label>Ward</label><select id="filter-ward"><option value="">All Wards</option></select></div>
+      <div><label>Category</label><select id="filter-category"><option value="">All Categories</option></select></div>
+      <div><label>Status</label><select id="filter-status"><option value="">All</option><option value="open">Open</option><option value="inprogress">In Progress</option><option value="resolved">Resolved</option></select></div>
+      <div><label>Search</label><input id="filter-search" type="text" placeholder="Search title..." style="width:180px" /></div>
+    </div>
+    <div class="section-card">
+      <div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0">Complaint Registry</h6><span id="complaint-count" style="font-size:.8rem;color:#6b7280"></span></div>
+      <div style="overflow-x:auto"><table class="complaints-table"><thead><tr><th>#ID</th><th>Title</th><th>District</th><th>Ward</th><th>Category</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="complaints-tbody"><tr><td colspan="8" class="text-center py-4 text-muted">Loading...</td></tr></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- SUBMIT -->
+  <section id="page-submit" class="page">
+    <div class="row justify-content-center"><div class="col-lg-7"><div class="section-card">
+      <h6 style="font-size:1.05rem;margin-bottom:20px"><i class="fa-solid fa-circle-plus me-2" style="color:var(--tn-orange)"></i>File a New Complaint</h6>
+      <form onsubmit="handleSubmitComplaint(event)"><div class="row g-3">
+        <div class="col-12"><div class="form-group mb-0"><label>Complaint Title <span style="color:red">*</span></label><input class="form-control" id="submit-title" type="text" placeholder="Brief description of the issue" required /></div></div>
+        <div class="col-md-6"><div class="form-group mb-0"><label>Category <span style="color:red">*</span></label><select class="form-control" id="submit-category" required><option value="">-- Select Category --</option></select></div></div>
+        <div class="col-md-6"><div class="form-group mb-0"><label>District <span style="color:red">*</span></label><select class="form-control" id="submit-district" required><option value="">-- Select District --</option></select></div></div>
+        <div class="col-md-6"><div class="form-group mb-0"><label>Ward / Area <span style="color:red">*</span></label><select class="form-control" id="submit-ward" required><option value="">-- Select Ward --</option></select></div></div>
+        <div class="col-md-6"><div class="form-group mb-0"><label>Your Name</label><input class="form-control" id="submit-name" type="text" placeholder="Optional" /></div></div>
+        <div class="col-md-6"><div class="form-group mb-0"><label>Phone Number</label><input class="form-control" id="submit-phone" type="tel" placeholder="10-digit mobile number" maxlength="10" /></div></div>
+        <div class="col-12"><div class="form-group mb-0"><label>Detailed Description</label><textarea class="form-control" id="submit-description" rows="4" placeholder="Describe the issue clearly..."></textarea></div></div>
+        <div class="col-12"><div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:12px 14px;font-size:.82rem;color:#0c4a6e"><i class="fa-solid fa-shield-halved me-2" style="color:#0284c7"></i>Your complaint will be forwarded to the concerned department. A tracking ID will be assigned immediately.</div></div>
+        <div class="col-12"><button type="submit" class="btn-submit"><i class="fa-solid fa-paper-plane me-2"></i> Submit Complaint</button></div>
+      </div></form>
+    </div></div></div>
+  </section>
+
+  <!-- DISTRICTS -->
+  <section id="page-districts" class="page">
+    <div class="section-card mb-3"><h6 style="font-size:1rem"><i class="fa-solid fa-building-columns me-2" style="color:var(--tn-orange)"></i>All 38 Districts of Tamil Nadu</h6><p style="font-size:.82rem;color:#6b7280;margin:0">Click any district to view its complaints. Bar shows resolution progress.</p></div>
+    <div class="row g-3" id="districts-grid"><div class="col-12 text-center py-5 text-muted">Loading districts...</div></div>
+  </section>
+
+</main>
+
+<!-- RESOLVE MODAL -->
+<div class="modal-overlay" id="resolve-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeResolveModal()"><i class="fa-solid fa-xmark"></i></button>
+    <h5><i class="fa-solid fa-pen-to-square me-2" style="color:var(--tn-orange)"></i>Update Complaint Status</h5>
+    <input type="hidden" id="modal-complaint-id" />
+    <div style="background:#f8fafc;border-radius:8px;padding:12px 14px;margin-bottom:16px">
+      <div style="font-weight:700;font-size:.9rem" id="modal-title"></div>
+      <div style="font-size:.78rem;color:#6b7280;margin-top:3px" id="modal-district"></div>
+      <div style="font-size:.75rem;margin-top:3px"><span style="background:#e0e7ff;padding:2px 8px;border-radius:10px;font-size:.72rem" id="modal-category"></span></div>
+    </div>
+    <div class="form-group"><label>Update Status</label><select class="form-control" id="modal-status"><option value="open">Open</option><option value="inprogress">In Progress</option><option value="resolved">Resolved</option></select></div>
+    <div class="form-group"><label>Resolution Notes</label><textarea class="form-control" id="modal-resolution" rows="3" placeholder="Describe action taken..."></textarea></div>
+    <div class="d-flex gap-2 mt-3">
+      <button class="btn-submit" onclick="submitResolveModal()"><i class="fa-solid fa-check me-2"></i>Save Update</button>
+      <button class="btn-submit" style="background:#6b7280" onclick="closeResolveModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/tndata.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
