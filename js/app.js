@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 function showPage(page) {
   // Auth guards
   if ((page === 'my-complaints' || page === 'chat') && !requireLogin()) return;
+  if (page === 'setup' && !isAdmin()) { showToast('Admin access required.'); return; }
 
   currentPage = page;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));

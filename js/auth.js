@@ -136,5 +136,5 @@ function updateAuthUI() {
     show('topbar-user-wrap', false);
     show('topbar-login-btn', true);
   }
-  show('nav-setup', !isConfigured() || isAdmin());
+  show('nav-setup', isAdmin());
 }
