@@ -80,3 +80,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--tn-light);color:#1
 .empty-state{text-align:center;padding:40px 20px;color:#9ca3af}
 .empty-state i{font-size:2.5rem;margin-bottom:12px}
 .tn-emblem{width:52px;height:52px;background:var(--tn-orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;color:#fff;margin:0 auto 8px}
+.form-section-label{font-size:.76rem;font-weight:700;color:var(--tn-blue);text-transform:uppercase;letter-spacing:.06em;padding:6px 0 2px;border-bottom:2px solid var(--tn-orange);display:inline-block;margin-bottom:2px}
+.badge-priority-low{background:#6b7280;color:#fff}
+.badge-priority-medium{background:#f59e0b;color:#fff}
+.badge-priority-high{background:#ef4444;color:#fff}
+.badge-priority-urgent{background:#7c3aed;color:#fff}

@@ -95,23 +95,54 @@
     </div>
     <div class="section-card">
       <div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0">Complaint Registry</h6><span id="complaint-count" style="font-size:.8rem;color:#6b7280"></span></div>
-      <div style="overflow-x:auto"><table class="complaints-table"><thead><tr><th>#ID</th><th>Title</th><th>District</th><th>Ward</th><th>Category</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="complaints-tbody"><tr><td colspan="8" class="text-center py-4 text-muted">Loading...</td></tr></tbody></table></div>
+      <div style="overflow-x:auto"><table class="complaints-table"><thead><tr><th>#ID</th><th>Title</th><th>District</th><th>Ward / PIN</th><th>Category</th><th>Priority</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="complaints-tbody"><tr><td colspan="9" class="text-center py-4 text-muted">Loading...</td></tr></tbody></table></div>
     </div>
   </section>
 
   <!-- SUBMIT -->
   <section id="page-submit" class="page">
-    <div class="row justify-content-center"><div class="col-lg-7"><div class="section-card">
-      <h6 style="font-size:1.05rem;margin-bottom:20px"><i class="fa-solid fa-circle-plus me-2" style="color:var(--tn-orange)"></i>File a New Complaint</h6>
+    <div class="row justify-content-center"><div class="col-lg-8"><div class="section-card">
+      <h6 style="font-size:1.05rem;margin-bottom:4px"><i class="fa-solid fa-circle-plus me-2" style="color:var(--tn-orange)"></i>File a New Complaint</h6>
+      <p style="font-size:.78rem;color:#6b7280;margin-bottom:20px">Fields marked <span style="color:red">*</span> are mandatory. Your complaint will be assigned a tracking ID immediately.</p>
       <form onsubmit="handleSubmitComplaint(event)"><div class="row g-3">
-        <div class="col-12"><div class="form-group mb-0"><label>Complaint Title <span style="color:red">*</span></label><input class="form-control" id="submit-title" type="text" placeholder="Brief description of the issue" required /></div></div>
+
+        <!-- Issue Details -->
+        <div class="col-12"><div class="form-section-label">Issue Details</div></div>
+        <div class="col-12"><div class="form-group mb-0"><label>Complaint Title <span style="color:red">*</span></label><input class="form-control" id="submit-title" type="text" placeholder="Brief description of the issue (e.g. Pothole on Anna Salai near bus stop)" required /></div></div>
         <div class="col-md-6"><div class="form-group mb-0"><label>Category <span style="color:red">*</span></label><select class="form-control" id="submit-category" required><option value="">-- Select Category --</option></select></div></div>
+        <div class="col-md-6"><div class="form-group mb-0"><label>Priority Level <span style="color:red">*</span></label>
+          <select class="form-control" id="submit-priority" required>
+            <option value="">-- Select Priority --</option>
+            <option value="low">Low — Minor inconvenience</option>
+            <option value="medium">Medium — Affects daily routine</option>
+            <option value="high">High — Safety concern</option>
+            <option value="urgent">Urgent — Immediate danger / emergency</option>
+          </select>
+        </div></div>
+
+        <!-- Location Details -->
+        <div class="col-12"><div class="form-section-label" style="margin-top:4px">Location Details</div></div>
         <div class="col-md-6"><div class="form-group mb-0"><label>District <span style="color:red">*</span></label><select class="form-control" id="submit-district" required><option value="">-- Select District --</option></select></div></div>
+        <div class="col-md-6"><div class="form-group mb-0"><label>Taluk / Block <span style="color:red">*</span></label><select class="form-control" id="submit-taluk" required><option value="">-- Select Taluk --</option></select></div></div>
         <div class="col-md-6"><div class="form-group mb-0"><label>Ward / Area <span style="color:red">*</span></label><select class="form-control" id="submit-ward" required><option value="">-- Select Ward --</option></select></div></div>
-        <div class="col-md-6"><div class="form-group mb-0"><label>Your Name</label><input class="form-control" id="submit-name" type="text" placeholder="Optional" /></div></div>
-        <div class="col-md-6"><div class="form-group mb-0"><label>Phone Number</label><input class="form-control" id="submit-phone" type="tel" placeholder="10-digit mobile number" maxlength="10" /></div></div>
-        <div class="col-12"><div class="form-group mb-0"><label>Detailed Description</label><textarea class="form-control" id="submit-description" rows="4" placeholder="Describe the issue clearly..."></textarea></div></div>
-        <div class="col-12"><div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:12px 14px;font-size:.82rem;color:#0c4a6e"><i class="fa-solid fa-shield-halved me-2" style="color:#0284c7"></i>Your complaint will be forwarded to the concerned department. A tracking ID will be assigned immediately.</div></div>
+        <div class="col-md-6"><div class="form-group mb-0">
+          <label>PIN Code <span style="color:red">*</span> <span id="pincode-auto-label" style="font-size:.72rem;color:#22c55e;font-weight:600;display:none"><i class="fa-solid fa-circle-check"></i> Auto-filled</span></label>
+          <input class="form-control" id="submit-pincode" type="text" placeholder="6-digit PIN code" maxlength="6" pattern="[0-9]{6}" required />
+        </div></div>
+        <div class="col-md-8"><div class="form-group mb-0"><label>Street / Address Line</label><input class="form-control" id="submit-address" type="text" placeholder="House No., Street Name, Area" /></div></div>
+        <div class="col-md-4"><div class="form-group mb-0"><label>Landmark</label><input class="form-control" id="submit-landmark" type="text" placeholder="Near temple, school..." /></div></div>
+
+        <!-- Reporter Details -->
+        <div class="col-12"><div class="form-section-label" style="margin-top:4px">Your Details <span style="font-size:.72rem;font-weight:400;color:#9ca3af">(optional but helps follow-up)</span></div></div>
+        <div class="col-md-6"><div class="form-group mb-0"><label>Your Name</label><input class="form-control" id="submit-name" type="text" placeholder="Full name (optional)" /></div></div>
+        <div class="col-md-6"><div class="form-group mb-0"><label>Phone Number</label><input class="form-control" id="submit-phone" type="tel" placeholder="10-digit mobile number" maxlength="10" pattern="[6-9][0-9]{9}" /></div></div>
+        <div class="col-md-6"><div class="form-group mb-0"><label>Email Address</label><input class="form-control" id="submit-email" type="email" placeholder="For status updates (optional)" /></div></div>
+
+        <!-- Description -->
+        <div class="col-12"><div class="form-section-label" style="margin-top:4px">Problem Description</div></div>
+        <div class="col-12"><div class="form-group mb-0"><label>Detailed Description <span style="color:red">*</span></label><textarea class="form-control" id="submit-description" rows="4" placeholder="Describe the issue in detail — when it started, how it affects residents, any previous complaints filed..." required></textarea></div></div>
+
+        <div class="col-12"><div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:12px 14px;font-size:.82rem;color:#0c4a6e"><i class="fa-solid fa-shield-halved me-2" style="color:#0284c7"></i>Your complaint will be forwarded to the concerned department. A unique tracking ID will be assigned immediately upon submission.</div></div>
         <div class="col-12"><button type="submit" class="btn-submit"><i class="fa-solid fa-paper-plane me-2"></i> Submit Complaint</button></div>
       </div></form>
     </div></div></div>

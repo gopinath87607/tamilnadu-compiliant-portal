@@ -104,8 +104,9 @@ function applyFilters(){
   c=[...c].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
   document.getElementById("complaint-count").textContent=`${c.length} complaint${c.length!==1?"s":""}`;
   const tbody=document.getElementById("complaints-tbody");if(!tbody)return;
-  if(!c.length){tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No complaints found</p></div></td></tr>`;return;}
-  tbody.innerHTML=c.map(x=>`<tr><td style="font-weight:700;color:var(--tn-blue)">#${x.id}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${x.title}">${x.title}</td><td>${x.district}</td><td style="font-size:.8rem">${x.ward}</td><td><span style="font-size:.73rem;background:#f1f5f9;padding:2px 7px;border-radius:10px">${x.category}</span></td><td><span class="badge-status badge-${x.status}">${STATUSES[x.status].label}</span></td><td style="color:#6b7280;font-size:.78rem">${formatDate(x.createdAt)}</td><td>${x.status!=="resolved"?`<button class="btn-resolve" onclick="openResolveModal(${x.id})">Update</button>`:'<span style="color:#22c55e;font-size:.78rem">&#10003; Done</span>'}</td></tr>`).join("");
+  if(!c.length){tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p>No complaints found</p></div></td></tr>`;return;}
+  const priBadge=(p)=>{const pr=PRIORITIES[p]||PRIORITIES.medium;return`<span style="font-size:.68rem;font-weight:700;color:#fff;background:${pr.color};padding:2px 7px;border-radius:10px">${pr.label}</span>`;};
+  tbody.innerHTML=c.map(x=>`<tr><td style="font-weight:700;color:var(--tn-blue)">#${x.id}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${x.title}">${x.title}</td><td>${x.district}</td><td style="font-size:.8rem">${x.ward}${x.pincode?`<br><span style="color:#9ca3af;font-size:.72rem">${x.pincode}</span>`:""}</td><td><span style="font-size:.72rem;background:#f1f5f9;padding:2px 7px;border-radius:10px">${x.category}</span></td><td>${priBadge(x.priority)}</td><td><span class="badge-status badge-${x.status}">${STATUSES[x.status].label}</span></td><td style="color:#6b7280;font-size:.78rem">${formatDate(x.createdAt)}</td><td>${x.status!=="resolved"?`<button class="btn-resolve" onclick="openResolveModal(${x.id})">Update</button>`:'<span style="color:#22c55e;font-size:.78rem">&#10003; Done</span>'}</td></tr>`).join("");
 }
 
 window.openResolveModal=function(id){
@@ -126,17 +127,51 @@ window.submitResolveModal=function(){
 };
 
 function renderSubmitForm(){
-  const ds=document.getElementById("submit-district"),ws=document.getElementById("submit-ward"),cs=document.getElementById("submit-category");if(!ds)return;
+  const ds=document.getElementById("submit-district"),ts=document.getElementById("submit-taluk"),ws=document.getElementById("submit-ward"),cs=document.getElementById("submit-category"),pc=document.getElementById("submit-pincode"),pcLabel=document.getElementById("pincode-auto-label");
+  if(!ds)return;
   ds.innerHTML=`<option value="">-- Select District --</option>`+TN_DISTRICTS.map(d=>`<option value="${d.name}">${d.name}</option>`).join("");
   cs.innerHTML=`<option value="">-- Select Category --</option>`+CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join("");
-  ds.onchange=()=>{const d=TN_DISTRICTS.find(x=>x.name===ds.value);ws.innerHTML=`<option value="">-- Select Ward --</option>`+(d?d.wards.map(w=>`<option value="${w}">${w}</option>`).join(""):"");};
+  const resetTaluk=()=>{ts.innerHTML=`<option value="">-- Select Taluk --</option>`;ws.innerHTML=`<option value="">-- Select Ward --</option>`;pc.value="";if(pcLabel)pcLabel.style.display="none";};
+  const resetWard=()=>{ws.innerHTML=`<option value="">-- Select Ward --</option>`;pc.value="";if(pcLabel)pcLabel.style.display="none";};
+  ds.onchange=()=>{
+    resetTaluk();
+    const taluks=getDistrictTaluks(ds.value);
+    if(taluks.length){ts.innerHTML=`<option value="">-- Select Taluk --</option>`+taluks.map(t=>`<option value="${t.name}">${t.name}</option>`).join("");}
+  };
+  ts.onchange=()=>{
+    resetWard();
+    const wards=getTalukWards(ds.value,ts.value);
+    if(wards.length){ws.innerHTML=`<option value="">-- Select Ward --</option>`+wards.map(w=>`<option value="${w.name}">${w.name}</option>`).join("");}
+  };
+  ws.onchange=()=>{
+    if(ws.value&&pc){
+      const pin=getWardPincode(ws.value);
+      if(pin){pc.value=pin;if(pcLabel)pcLabel.style.display="inline";}
+      else{pc.value="";if(pcLabel)pcLabel.style.display="none";}
+    }
+  };
+  pc.addEventListener("input",()=>{if(pcLabel&&pc.value!==getWardPincode(ws.value))pcLabel.style.display="none";});
 }
 
 window.handleSubmitComplaint=function(e){
   e.preventDefault();const f=e.target;
-  const c={title:f.querySelector("#submit-title").value.trim(),category:f.querySelector("#submit-category").value,district:f.querySelector("#submit-district").value,ward:f.querySelector("#submit-ward").value,description:f.querySelector("#submit-description").value.trim(),reportedBy:f.querySelector("#submit-name").value.trim()||"Anonymous",phone:f.querySelector("#submit-phone").value.trim()};
-  if(!c.title||!c.category||!c.district||!c.ward){showToast("Please fill all required fields.");return;}
-  addComplaint(c);f.reset();renderSubmitForm();showToast("✓ Complaint submitted successfully! Complaint ID assigned.");
+  const c={
+    title:f.querySelector("#submit-title").value.trim(),
+    category:f.querySelector("#submit-category").value,
+    priority:f.querySelector("#submit-priority").value||"medium",
+    district:f.querySelector("#submit-district").value,
+    taluk:f.querySelector("#submit-taluk").value,
+    ward:f.querySelector("#submit-ward").value,
+    pincode:f.querySelector("#submit-pincode").value.trim(),
+    address:f.querySelector("#submit-address").value.trim(),
+    landmark:f.querySelector("#submit-landmark").value.trim(),
+    description:f.querySelector("#submit-description").value.trim(),
+    reportedBy:f.querySelector("#submit-name").value.trim()||"Anonymous",
+    phone:f.querySelector("#submit-phone").value.trim(),
+    email:f.querySelector("#submit-email").value.trim()
+  };
+  if(!c.title||!c.category||!c.district||!c.taluk||!c.ward||!c.pincode||!c.description){showToast("Please fill all required fields.");return;}
+  addComplaint(c);f.reset();renderSubmitForm();showToast("✓ Complaint submitted successfully! Tracking ID assigned.");
 };
 
 function renderDistrictsPage(){
