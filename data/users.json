@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "id": "u_1778734863815_h4vr5",
+      "username": "gopi",
+      "email": "gopi@gmail.com",
+      "passwordHash": "cbf94c4e29ddd800e4d7114fee6f1818935405053b0f46e9b9608726f4062003",
+      "phone": "",
+      "district": "Erode",
+      "role": "admin",
+      "createdAt": "2026-05-14T05:01:03.815Z"
+    }
+  ]
+}
