@@ -40,13 +40,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // Seed demo data if nothing exists
-  const existing = JSON.parse(localStorage.getItem('tn_complaints_v2') || '[]');
-  if (!existing.length) {
-    const demo = generateComplaints();
-    localStorage.setItem('tn_complaints_v2', JSON.stringify(demo));
-  }
-
   showPage('dashboard');
 });
 
