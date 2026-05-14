@@ -21,12 +21,16 @@ async function registerUser({ username, email, password, phone, district }) {
   if (password.length < 6)     throw new Error('Password must be at least 6 characters.');
   if (!/\S+@\S+\.\S+/.test(email)) throw new Error('Enter a valid email address.');
 
-  let users = [], sha = null;
+  let users = [], sha = null, ghAvailable = false;
   if (isConfigured()) {
-    const res = await readGHFile('data/users.json');
-    users = res.data?.users || [];
-    sha   = res.sha;
-  } else {
+    try {
+      const res = await readGHFile('data/users.json');
+      users = res.data?.users || [];
+      sha   = res.sha;
+      ghAvailable = true;
+    } catch { /* fall through to localStorage */ }
+  }
+  if (!ghAvailable) {
     users = JSON.parse(localStorage.getItem('tn_users') || '[]');
   }
 
@@ -43,7 +47,7 @@ async function registerUser({ username, email, password, phone, district }) {
   };
 
   users.push(newUser);
-  if (isConfigured()) {
+  if (ghAvailable) {
     await writeGHFile('data/users.json', { users }, sha, `Register: ${username}`);
   } else {
     localStorage.setItem('tn_users', JSON.stringify(users));
@@ -58,30 +62,35 @@ async function registerUser({ username, email, password, phone, district }) {
 async function loginUser({ username, password, remember }) {
   username = username.trim().toLowerCase();
   let users = [];
+  let ghAvailable = false;
 
-  // Try GitHub first, then fall back to localStorage
   if (isConfigured()) {
-    const { data } = await readGHFile('data/users.json');
-    users = data?.users || [];
+    try {
+      const { data } = await readGHFile('data/users.json');
+      users = data?.users || [];
+      ghAvailable = true;
+    } catch { /* GitHub unreachable or token invalid — fall through */ }
   }
-  // Always also check localStorage (handles accounts created before GitHub was configured)
-  if (!users.length) {
-    users = JSON.parse(localStorage.getItem('tn_users') || '[]');
-  }
+
+  // Always also check localStorage
+  const localUsers = JSON.parse(localStorage.getItem('tn_users') || '[]');
+  if (!users.length) users = localUsers;
 
   if (!users.length) throw new Error('No accounts found. Please register first.');
   const hash = await hashPwd(password);
   const user = users.find(u => u.username === username && u.passwordHash === hash);
   if (!user) throw new Error('Invalid username or password.');
 
-  // If found in localStorage but GitHub is now configured, migrate the user
-  if (isConfigured()) {
-    const { data, sha } = await readGHFile('data/users.json');
-    const ghUsers = data?.users || [];
-    if (!ghUsers.find(u => u.id === user.id)) {
-      ghUsers.push(user);
-      await writeGHFile('data/users.json', { users: ghUsers }, sha, `Migrate user: ${username}`);
-    }
+  // Migrate localStorage account to GitHub if GitHub is available
+  if (ghAvailable) {
+    try {
+      const { data, sha } = await readGHFile('data/users.json');
+      const ghUsers = data?.users || [];
+      if (!ghUsers.find(u => u.id === user.id)) {
+        ghUsers.push(user);
+        await writeGHFile('data/users.json', { users: ghUsers }, sha, `Migrate user: ${username}`);
+      }
+    } catch { /* non-fatal */ }
   }
 
   _startSession(user, !!remember);
