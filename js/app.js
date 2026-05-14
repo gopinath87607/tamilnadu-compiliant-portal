@@ -20,6 +20,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAuth();
   _syncGHBadge();
 
+  // One-time cleanup: wipe auto-generated demo complaints
+  if (!localStorage.getItem('tn_demo_cleared_v1')) {
+    localStorage.removeItem('tn_complaints_v2');
+    localStorage.setItem('tn_demo_cleared_v1', '1');
+    // Also clear demo data from GitHub if configured
+    if (isConfigured()) {
+      try {
+        const { data, sha } = await readGHFile('data/complaints.json');
+        const real = (data?.complaints || []).filter(c => c.userId);
+        await writeGHFile('data/complaints.json', { complaints: real }, sha, 'Remove demo complaints');
+      } catch { /* non-fatal */ }
+    }
+  }
+
   // Secret admin setup access via URL hash
   const checkHash = () => { if (location.hash === '#admin-setup') showPage('setup'); };
   window.addEventListener('hashchange', checkHash);
@@ -39,13 +53,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (sel) sel.add(new Option(d.name, d.name));
     });
   });
-
-  // Seed demo data if nothing exists
-  const existing = JSON.parse(localStorage.getItem('tn_complaints_v2') || '[]');
-  if (!existing.length) {
-    const demo = generateComplaints();
-    localStorage.setItem('tn_complaints_v2', JSON.stringify(demo));
-  }
 
   showPage('dashboard');
 });
