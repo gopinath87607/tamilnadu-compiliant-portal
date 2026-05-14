@@ -12033,9 +12033,16 @@
       "id": 547,
       "status": "open",
       "createdAt": "2026-05-14T08:02:25.116Z",
-      "updatedAt": "2026-05-14T08:02:25.116Z",
+      "updatedAt": "2026-05-14T08:06:32.452Z",
       "resolution": "",
-      "updates": []
+      "updates": [
+        {
+          "status": "open",
+          "note": "",
+          "timestamp": "2026-05-14T08:06:32.452Z",
+          "by": "gopi"
+        }
+      ]
     }
   ]
 }
