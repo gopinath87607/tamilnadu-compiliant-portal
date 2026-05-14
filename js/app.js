@@ -20,6 +20,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAuth();
   _syncGHBadge();
 
+  // Secret admin setup access via URL hash
+  const checkHash = () => { if (location.hash === '#admin-setup') showPage('setup'); };
+  window.addEventListener('hashchange', checkHash);
+  checkHash();
+
   // Pre-fill setup form from saved config
   const c = getGHConfig();
   if (c.token)  document.getElementById('setup-token').value  = c.token;
