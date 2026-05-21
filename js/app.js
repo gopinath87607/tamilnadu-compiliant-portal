@@ -1,3 +1,13 @@
+// ── Tamil Nadu Economic Data ──────────────────────────────────────────────────
+const TN_ECONOMY = [
+  { year:'2019-20', gsdp:18.46, gsdpGrowth:9.8,  debt:3.80, debtGrowth:14.5 },
+  { year:'2020-21', gsdp:17.83, gsdpGrowth:-3.4,  debt:4.66, debtGrowth:22.6 },
+  { year:'2021-22', gsdp:20.50, gsdpGrowth:14.9,  debt:5.27, debtGrowth:13.1 },
+  { year:'2022-23', gsdp:23.29, gsdpGrowth:13.6,  debt:6.08, debtGrowth:15.4 },
+  { year:'2023-24', gsdp:26.07, gsdpGrowth:11.9,  debt:7.04, debtGrowth:15.8 },
+  { year:'2024-25', gsdp:29.22, gsdpGrowth:12.1,  debt:8.06, debtGrowth:14.5, estimated:true }
+];
+
 // ── State ─────────────────────────────────────────────────────────────────────
 let currentPage = 'dashboard';
 let leafletMap = null, bubbleLayer = null;
@@ -74,7 +84,8 @@ function showPage(page) {
     dashboard:'Dashboard', map:'Complaint Map', complaints:'All Complaints',
     submit:'Submit Complaint', districts:'District Overview',
     login:'Login / Register', 'my-complaints':'My Complaints',
-    chat:'Community Chat', setup:'Setup & Configuration'
+    chat:'Community Chat', setup:'Setup & Configuration',
+    economy:'TN Economy'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
 
@@ -94,6 +105,7 @@ function showPage(page) {
     case 'chat':          renderChatPage(); break;
     case 'setup':         renderSetupPage(); break;
     case 'login':         renderLoginPage(); break;
+    case 'economy':       renderEconomyPage(); break;
   }
 }
 
@@ -766,4 +778,68 @@ function showToast(msg) {
   t.textContent=msg; t.style.display='block';
   clearTimeout(t._timer);
   t._timer=setTimeout(()=>{t.style.display='none';},3800);
+}
+
+// ── Economy Page ──────────────────────────────────────────────────────────────
+function renderEconomyPage() {
+  const latest = TN_ECONOMY[TN_ECONOMY.length - 1];
+  const prev   = TN_ECONOMY[TN_ECONOMY.length - 2];
+
+  // Stat cards
+  document.getElementById('econ-gsdp').textContent     = '₹' + latest.gsdp.toFixed(2) + ' L Cr';
+  document.getElementById('econ-gdp-growth').textContent = (latest.gsdpGrowth > 0 ? '+' : '') + latest.gsdpGrowth + '%';
+  document.getElementById('econ-debt').textContent     = '₹' + latest.debt.toFixed(2) + ' L Cr';
+  const ratio = ((latest.debt / latest.gsdp) * 100).toFixed(1);
+  document.getElementById('econ-debt-ratio').textContent = ratio + '%';
+
+  // Colour the growth card green/red
+  const growthEl = document.getElementById('econ-gdp-growth');
+  growthEl.style.color = latest.gsdpGrowth >= 0 ? 'var(--green)' : 'var(--red)';
+
+  // GSDP growth chart
+  const maxGdpG = Math.max(...TN_ECONOMY.map(r => Math.abs(r.gsdpGrowth)));
+  const gdpChart = document.getElementById('gdp-growth-chart');
+  if (gdpChart) gdpChart.innerHTML = TN_ECONOMY.map(r => {
+    const pct = Math.abs(r.gsdpGrowth) / maxGdpG * 100;
+    const color = r.gsdpGrowth < 0 ? 'var(--red)' : 'var(--blue2)';
+    const label = (r.gsdpGrowth > 0 ? '+' : '') + r.gsdpGrowth + '%' + (r.estimated ? '*' : '');
+    return `<div style="margin-bottom:9px">
+      <div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:2px">
+        <span>${r.year}${r.estimated ? ' <span style="font-size:.65rem;color:var(--gray)">(Est.)</span>' : ''}</span>
+        <b style="color:${color}">${label}</b>
+      </div>
+      <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    </div>`;
+  }).join('');
+
+  // Debt growth chart
+  const maxDebtG = Math.max(...TN_ECONOMY.map(r => r.debtGrowth));
+  const debtChart = document.getElementById('debt-growth-chart');
+  if (debtChart) debtChart.innerHTML = TN_ECONOMY.map(r => {
+    const pct = r.debtGrowth / maxDebtG * 100;
+    const color = r.debtGrowth > 18 ? 'var(--red)' : r.debtGrowth > 14 ? 'var(--amber)' : 'var(--green)';
+    return `<div style="margin-bottom:9px">
+      <div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:2px">
+        <span>${r.year}${r.estimated ? ' <span style="font-size:.65rem;color:var(--gray)">(Est.)</span>' : ''}</span>
+        <b style="color:${color}">+${r.debtGrowth}%</b>
+      </div>
+      <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    </div>`;
+  }).join('');
+
+  // Summary table
+  const tbody = document.getElementById('econ-tbody');
+  if (tbody) tbody.innerHTML = [...TN_ECONOMY].reverse().map(r => {
+    const debtRatio = ((r.debt / r.gsdp) * 100).toFixed(1);
+    const gColor = r.gsdpGrowth < 0 ? 'var(--red)' : r.gsdpGrowth >= 10 ? 'var(--green)' : 'var(--amber)';
+    const dColor = r.debtGrowth > 18 ? 'var(--red)' : r.debtGrowth > 14 ? 'var(--amber)' : 'var(--green)';
+    return `<tr${r.estimated ? ' style="background:#f8fafc"' : ''}>
+      <td><strong>${r.year}</strong>${r.estimated ? ' <span class="badge" style="background:#e0f2fe;color:#0369a1;font-size:.65rem">Est.</span>' : ''}</td>
+      <td>₹${r.gsdp.toFixed(2)} L Cr</td>
+      <td><span style="font-weight:700;color:${gColor}">${r.gsdpGrowth > 0 ? '+' : ''}${r.gsdpGrowth}%</span></td>
+      <td>₹${r.debt.toFixed(2)} L Cr</td>
+      <td><span style="font-weight:700;color:${dColor}">+${r.debtGrowth}%</span></td>
+      <td>${debtRatio}%</td>
+    </tr>`;
+  }).join('');
 }

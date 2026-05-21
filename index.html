@@ -24,6 +24,7 @@
     <a class="nav-link" data-page="map"><i class="fa-solid fa-map-location-dot"></i> Complaint Map</a>
     <a class="nav-link" data-page="complaints"><i class="fa-solid fa-list-check"></i> All Complaints</a>
     <a class="nav-link" data-page="districts"><i class="fa-solid fa-building-columns"></i> District Overview</a>
+    <a class="nav-link" data-page="economy"><i class="fa-solid fa-chart-line"></i> TN Economy</a>
 
     <div class="nav-divider"></div>
     <div class="nav-section">Account</div>
@@ -321,6 +322,94 @@
         <li>Click <strong>Initialize Data Files</strong> to create the <code>data/</code> folder structure</li>
         <li>All complaints, user accounts and chat messages will now sync to GitHub</li>
       </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ── TN ECONOMY ──────────────────────────────────────────────────────── -->
+<section id="page-economy" class="page">
+  <div class="info-box mb-4">
+    <i class="fa-solid fa-circle-info me-2"></i>
+    <strong>Tamil Nadu Economy:</strong> State fiscal data sourced from Tamil Nadu Budget documents and RBI State Finance reports. Values at current prices.
+  </div>
+  <!-- Summary stat cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="icon" style="background:#e0f2fe"><i class="fa-solid fa-indian-rupee-sign" style="color:#0284c7"></i></div>
+        <div>
+          <div class="count" style="font-size:1.4rem" id="econ-gsdp">—</div>
+          <div class="label">GSDP 2024-25 (Est.)</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="icon" style="background:#dcfce7"><i class="fa-solid fa-arrow-trend-up" style="color:#16a34a"></i></div>
+        <div>
+          <div class="count" id="econ-gdp-growth">—</div>
+          <div class="label">GSDP Growth Rate</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="icon" style="background:#fee2e2"><i class="fa-solid fa-landmark" style="color:#dc2626"></i></div>
+        <div>
+          <div class="count" style="font-size:1.4rem" id="econ-debt">—</div>
+          <div class="label">State Debt 2024-25 (Est.)</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="icon" style="background:#fef3c7"><i class="fa-solid fa-percent" style="color:#d97706"></i></div>
+        <div>
+          <div class="count" id="econ-debt-ratio">—</div>
+          <div class="label">Debt-to-GSDP Ratio</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts row -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="section-card" style="height:300px;overflow-y:auto">
+        <h6><i class="fa-solid fa-chart-bar me-2" style="color:var(--blue2)"></i>GSDP Growth Rate (% YoY)</h6>
+        <div id="gdp-growth-chart"></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="section-card" style="height:300px;overflow-y:auto">
+        <h6><i class="fa-solid fa-chart-bar me-2" style="color:var(--red)"></i>State Debt Growth Rate (% YoY)</h6>
+        <div id="debt-growth-chart"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Year-by-year data table -->
+  <div class="section-card">
+    <h6><i class="fa-solid fa-table me-2" style="color:var(--orange)"></i>Year-by-Year Fiscal Summary</h6>
+    <div style="overflow-x:auto">
+      <table class="data-table" id="econ-table">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>GSDP (₹ Lakh Cr)</th>
+            <th>GSDP Growth %</th>
+            <th>State Debt (₹ Lakh Cr)</th>
+            <th>Debt Growth %</th>
+            <th>Debt-to-GSDP %</th>
+          </tr>
+        </thead>
+        <tbody id="econ-tbody">
+          <tr><td colspan="6" class="text-center py-4 text-muted">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="font-size:.72rem;color:var(--gray);margin-top:12px">
+      * 2024-25 figures are budget estimates. Sources: Tamil Nadu Budget 2024-25, RBI State Finances, Government of Tamil Nadu Finance Department.
     </div>
   </div>
 </section>
