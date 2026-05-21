@@ -70,8 +70,9 @@
 
 <!-- ── DASHBOARD ─────────────────────────────────────────────────────── -->
 <section id="page-dashboard" class="page active">
-  <!-- Stat cards -->
-  <div class="row g-3 mb-4">
+
+  <!-- Row 1: Complaint stats -->
+  <div class="row g-3 mb-3">
     <div class="col-6 col-md-3">
       <div class="stat-card">
         <div class="icon" style="background:#eff6ff"><i class="fa-solid fa-file-lines" style="color:#2563eb"></i></div>
@@ -98,45 +99,120 @@
     </div>
   </div>
 
-  <!-- Resolution rate -->
-  <div class="resolution-strip mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <span class="label"><i class="fa-solid fa-chart-simple me-2" style="color:var(--orange)"></i>Overall Resolution Rate</span>
-      <span class="pct" id="stat-pct">—</span>
+  <!-- Row 2: Economy snapshot (compact) -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+      <div class="econ-snap-card">
+        <div class="econ-snap-icon" style="background:#e0f2fe"><i class="fa-solid fa-indian-rupee-sign" style="color:#0284c7"></i></div>
+        <div>
+          <div class="econ-snap-val" id="dash-gsdp">—</div>
+          <div class="econ-snap-label">GSDP 2024-25 <span class="econ-est">Est.</span></div>
+        </div>
+      </div>
     </div>
-    <div class="progress-wrap"><div class="progress-fill" id="resolve-progress" style="width:0%"></div></div>
+    <div class="col-6 col-md-3">
+      <div class="econ-snap-card">
+        <div class="econ-snap-icon" style="background:#dcfce7"><i class="fa-solid fa-arrow-trend-up" style="color:#16a34a"></i></div>
+        <div>
+          <div class="econ-snap-val" id="dash-gsdp-growth">—</div>
+          <div class="econ-snap-label">GSDP Growth Rate</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="econ-snap-card">
+        <div class="econ-snap-icon" style="background:#fef2f2"><i class="fa-solid fa-landmark" style="color:#dc2626"></i></div>
+        <div>
+          <div class="econ-snap-val" id="dash-debt">—</div>
+          <div class="econ-snap-label">State Debt 2024-25 <span class="econ-est">Est.</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="econ-snap-card">
+        <div class="econ-snap-icon" style="background:#fffbeb"><i class="fa-solid fa-percent" style="color:#d97706"></i></div>
+        <div>
+          <div class="econ-snap-val" id="dash-debt-ratio">—</div>
+          <div class="econ-snap-label">Debt-to-GSDP Ratio</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Charts + Quick actions -->
-  <div class="row g-3">
+  <!-- Row 3: Bubble map + right panel -->
+  <div class="row g-3 mb-3">
+    <!-- Embedded district bubble map -->
+    <div class="col-md-8">
+      <div class="section-card" style="padding:0;overflow:hidden">
+        <div class="dash-map-header">
+          <span><i class="fa-solid fa-map-location-dot me-2" style="color:var(--orange)"></i>District Complaint Bubble Map</span>
+          <div class="dash-map-legend">
+            <span><span class="legend-dot-sm" style="background:#ef4444"></span>High Open</span>
+            <span><span class="legend-dot-sm" style="background:#f59e0b"></span>Mixed</span>
+            <span><span class="legend-dot-sm" style="background:#22c55e"></span>Resolved</span>
+            <span><span class="legend-dot-sm" style="background:#94a3b8"></span>No Data</span>
+          </div>
+          <a style="font-size:.75rem;color:var(--blue2);cursor:pointer;font-weight:600;white-space:nowrap" onclick="showPage('map')">Full Map →</a>
+        </div>
+        <div id="dash-map"></div>
+      </div>
+    </div>
+
+    <!-- Right panel: resolution + top districts -->
+    <div class="col-md-4 d-flex flex-column gap-3">
+      <!-- Resolution rate -->
+      <div class="resolution-strip">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="label"><i class="fa-solid fa-chart-pie me-1" style="color:var(--orange)"></i>Resolution Rate</span>
+          <span class="pct" id="stat-pct">—</span>
+        </div>
+        <div class="progress-wrap"><div class="progress-fill" id="resolve-progress" style="width:0%"></div></div>
+      </div>
+      <!-- Top districts -->
+      <div class="section-card" style="flex:1;overflow-y:auto">
+        <h6><i class="fa-solid fa-ranking-star" style="color:var(--orange)"></i>Top Districts by Complaints</h6>
+        <div id="top-districts"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 4: Category chart + Debt trend + Quick actions -->
+  <div class="row g-3 mb-3">
     <div class="col-md-5">
-      <div class="section-card" style="height:310px;overflow-y:auto">
+      <div class="section-card" style="height:280px;overflow-y:auto">
         <h6><i class="fa-solid fa-chart-bar" style="color:var(--blue2)"></i>Complaints by Category</h6>
         <div id="category-chart"></div>
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="section-card" style="height:310px;overflow-y:auto">
-        <h6><i class="fa-solid fa-ranking-star" style="color:var(--orange)"></i>Top Districts</h6>
-        <div id="top-districts"></div>
+    <div class="col-md-4">
+      <div class="section-card" style="height:280px">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0"><i class="fa-solid fa-coins" style="color:var(--red)"></i>State Debt Trend</h6>
+          <a style="font-size:.73rem;color:var(--blue2);cursor:pointer;font-weight:600" onclick="showPage('economy')">Full View →</a>
+        </div>
+        <div id="dash-debt-trend" style="display:flex;gap:4px;align-items:flex-end;padding:0 4px"></div>
+        <div style="font-size:.68rem;color:var(--text-muted);margin-top:10px;border-top:1px solid var(--border);padding-top:8px">
+          <i class="fa-solid fa-circle-info me-1" style="color:var(--blue2)"></i>
+          Bar height = debt amount · Colour = growth rate (red &gt;18%, amber &gt;14%)
+        </div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="section-card" style="height:310px">
+    <div class="col-md-3">
+      <div class="section-card" style="height:280px">
         <h6><i class="fa-solid fa-bolt" style="color:var(--amber)"></i>Quick Actions</h6>
         <div class="d-flex flex-column gap-2">
-          <button class="quick-action-btn" onclick="showPage('submit')"><i class="fa-solid fa-circle-plus"></i>Submit a Complaint</button>
-          <button class="quick-action-btn" onclick="showPage('map')"><i class="fa-solid fa-map-location-dot"></i>View Complaint Map</button>
-          <button class="quick-action-btn" onclick="showPage('complaints')"><i class="fa-solid fa-list-check"></i>Manage Complaints</button>
-          <button class="quick-action-btn" onclick="showPage('districts')"><i class="fa-solid fa-building-columns"></i>District Overview</button>
+          <button class="quick-action-btn" onclick="showPage('submit')"><i class="fa-solid fa-circle-plus"></i>Submit Complaint</button>
+          <button class="quick-action-btn" onclick="showPage('map')"><i class="fa-solid fa-map-location-dot"></i>Complaint Map</button>
+          <button class="quick-action-btn" onclick="showPage('complaints')"><i class="fa-solid fa-list-check"></i>All Complaints</button>
+          <button class="quick-action-btn" onclick="showPage('districts')"><i class="fa-solid fa-building-columns"></i>Districts</button>
           <button class="quick-action-btn" onclick="showPage('economy')"><i class="fa-solid fa-chart-line"></i>TN Economy</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Recent complaints table -->
-  <div class="section-card mt-4">
+  <!-- Row 5: Recent complaints table -->
+  <div class="section-card">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h6 class="mb-0"><i class="fa-solid fa-clock-rotate-left" style="color:var(--blue2)"></i>Recent Complaints</h6>
       <a style="font-size:.8rem;color:var(--blue2);cursor:pointer;font-weight:600" onclick="showPage('complaints')">View all →</a>
@@ -148,6 +224,7 @@
       </table>
     </div>
   </div>
+
 </section>
 
 <!-- ── MAP ────────────────────────────────────────────────────────────── -->
