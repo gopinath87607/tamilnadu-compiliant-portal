@@ -1,0 +1,21 @@
+{
+  "name": "tamilnadu-compiliant-portal",
+  "version": "1.0.0",
+  "description": "A civic complaint management portal for all 38 districts and their wards in Tamil Nadu, featuring interactive bubble maps.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:39547/git/gopinath87607/tamilnadu-compiliant-portal"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.5.0",
+    "bootstrap": "^5.3.0",
+    "leaflet": "^1.9.4"
+  }
+}
