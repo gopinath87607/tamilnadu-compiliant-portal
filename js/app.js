@@ -11,6 +11,7 @@ const TN_ECONOMY = [
 // ── State ─────────────────────────────────────────────────────────────────────
 let currentPage = 'dashboard';
 let leafletMap = null, bubbleLayer = null;
+let dashMap = null, dashBubbleLayer = null;
 let geoMap = null, geoMarker = null;
 let selectedLat = null, selectedLng = null;
 let filterState = { district:'', taluk:'', ward:'', category:'', priority:'', status:'', search:'' };
@@ -117,14 +118,25 @@ async function renderDashboard() {
         resolved = c.filter(x=>x.status==='resolved').length,
         pct = total ? Math.round(resolved/total*100) : 0;
 
-  document.getElementById('stat-total').textContent   = total;
-  document.getElementById('stat-open').textContent    = open;
-  document.getElementById('stat-inprog').textContent  = inprog;
-  document.getElementById('stat-resolved').textContent= resolved;
-  document.getElementById('stat-pct').textContent     = pct + '%';
-
+  // Complaint stat cards
+  document.getElementById('stat-total').textContent    = total;
+  document.getElementById('stat-open').textContent     = open;
+  document.getElementById('stat-inprog').textContent   = inprog;
+  document.getElementById('stat-resolved').textContent = resolved;
+  document.getElementById('stat-pct').textContent      = pct + '%';
   const pb = document.getElementById('resolve-progress');
   if (pb) { pb.style.width = pct+'%'; pb.style.background = pct>70?'var(--green)':pct>40?'var(--amber)':'var(--red)'; }
+
+  // Economy snapshot cards
+  const econ = TN_ECONOMY[TN_ECONOMY.length-1];
+  const econEl = id => document.getElementById(id);
+  if (econEl('dash-gsdp'))       econEl('dash-gsdp').textContent       = '₹'+econ.gsdp.toFixed(2)+' L Cr';
+  if (econEl('dash-gsdp-growth')){
+    econEl('dash-gsdp-growth').textContent = (econ.gsdpGrowth>0?'+':'')+econ.gsdpGrowth+'%';
+    econEl('dash-gsdp-growth').style.color = econ.gsdpGrowth>=0?'var(--green)':'var(--red)';
+  }
+  if (econEl('dash-debt'))       econEl('dash-debt').textContent       = '₹'+econ.debt.toFixed(2)+' L Cr';
+  if (econEl('dash-debt-ratio')) econEl('dash-debt-ratio').textContent = ((econ.debt/econ.gsdp)*100).toFixed(1)+'%';
 
   // Category chart
   const counts = {};
@@ -133,24 +145,106 @@ async function renderDashboard() {
   const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8), max = sorted[0]?.[1]||1;
   const cc = document.getElementById('category-chart');
   if (cc) cc.innerHTML = sorted.map(([cat,n]) =>
-    `<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:2px"><span>${cat}</span><b>${n}</b></div><div class="mini-bar"><div class="mini-bar-fill" style="width:${n/max*100}%;background:var(--blue)"></div></div></div>`
+    `<div style="margin-bottom:9px">
+      <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:3px">
+        <span style="color:var(--text-secondary)">${cat}</span>
+        <b style="color:var(--text-primary)">${n}</b>
+      </div>
+      <div class="mini-bar"><div class="mini-bar-fill" style="width:${n/max*100}%;background:var(--blue2)"></div></div>
+    </div>`
   ).join('');
 
-  // Recent
+  // Recent complaints
   const rc = document.getElementById('recent-complaints');
   if (rc) rc.innerHTML = [...c].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,8).map(x =>
-    `<tr><td><span class="badge badge-${x.status}">${STATUSES[x.status].label}</span></td>
-     <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x.title}</td>
-     <td>${x.district}</td><td><span style="font-size:.7rem;background:#f1f5f9;padding:2px 7px;border-radius:10px">${x.category}</span></td>
-     <td>${priBadge(x.priority)}</td><td style="font-size:.76rem;color:var(--gray)">${fmtDate(x.createdAt)}</td></tr>`
-  ).join('');
+    `<tr>
+      <td><span class="badge badge-${x.status}">${STATUSES[x.status].label}</span></td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500">${x.title}</td>
+      <td>${x.district}</td>
+      <td><span style="font-size:.7rem;background:var(--surface-2);padding:2px 8px;border-radius:10px;border:1px solid var(--border)">${x.category}</span></td>
+      <td>${priBadge(x.priority)}</td>
+      <td style="font-size:.75rem;color:var(--text-secondary)">${fmtDate(x.createdAt)}</td>
+    </tr>`
+  ).join('') || '<tr><td colspan="6" class="text-center py-4" style="color:var(--text-muted)">No complaints yet</td></tr>';
 
   // Top districts
-  const stats = getDistrictStats(c).sort((a,b)=>b.total-a.total).slice(0,5), mx = stats[0]?.total||1;
+  const distStats = getDistrictStats(c).sort((a,b)=>b.total-a.total).slice(0,6), mx = distStats[0]?.total||1;
   const td = document.getElementById('top-districts');
-  if (td) td.innerHTML = stats.map(d =>
-    `<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:2px"><span style="font-weight:600">${d.name}</span><span><span style="color:var(--red)">${d.open}</span> open, <span style="color:var(--green)">${d.resolved}</span> done</span></div><div class="mini-bar"><div class="mini-bar-fill" style="width:${d.total/mx*100}%;background:var(--orange)"></div></div></div>`
-  ).join('');
+  if (td) td.innerHTML = distStats.map(d => {
+    const resPct = d.total ? Math.round(d.resolved/d.total*100) : 0;
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <span style="font-weight:600;font-size:.82rem">${d.name}</span>
+        <span style="font-size:.72rem;color:var(--text-secondary)">${d.total} total</span>
+      </div>
+      <div style="display:flex;gap:8px;font-size:.71rem;margin-bottom:4px">
+        <span style="color:var(--red);font-weight:600">${d.open} open</span>
+        <span style="color:var(--amber);font-weight:600">${d.inprogress} active</span>
+        <span style="color:var(--green);font-weight:600">${d.resolved} resolved</span>
+      </div>
+      <div class="mini-bar"><div class="mini-bar-fill" style="width:${d.total/mx*100}%;background:${resPct>60?'var(--green)':resPct>30?'var(--amber)':'var(--orange)'}"></div></div>
+    </div>`;
+  }).join('') || '<p style="font-size:.8rem;color:var(--text-muted);text-align:center;padding:20px 0">No data yet</p>';
+
+  // Debt trend vertical bar chart
+  const dt = document.getElementById('dash-debt-trend');
+  if (dt) {
+    const maxDebt = Math.max(...TN_ECONOMY.map(r=>r.debt));
+    dt.innerHTML = TN_ECONOMY.map(r => {
+      const h = Math.round((r.debt/maxDebt)*72);
+      const col = r.debtGrowth>18?'var(--red)':r.debtGrowth>14?'var(--amber)':'var(--green)';
+      return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px">
+        <span style="font-size:.58rem;font-weight:700;color:${col}">+${r.debtGrowth}%</span>
+        <div style="width:100%;display:flex;align-items:flex-end;height:72px">
+          <div style="width:100%;height:${h}px;background:${col};border-radius:3px 3px 0 0;min-height:4px"></div>
+        </div>
+        <span style="font-size:.58rem;color:var(--text-muted);text-align:center;line-height:1.2">${r.year.slice(2)}</span>
+        <span style="font-size:.62rem;font-weight:600;color:var(--text-primary)">₹${r.debt}L</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Render the embedded bubble map
+  renderDashMap(c);
+}
+
+async function renderDashMap(complaints) {
+  if (!document.getElementById('dash-map')) return;
+  if (!dashMap) {
+    dashMap = L.map('dash-map', {
+      zoomControl: false, attributionControl: false,
+      dragging: true, scrollWheelZoom: false, doubleClickZoom: false
+    }).setView([10.75, 78.5], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(dashMap);
+    L.control.zoom({position:'bottomright'}).addTo(dashMap);
+  }
+  setTimeout(() => dashMap.invalidateSize(), 150);
+
+  if (dashBubbleLayer) dashMap.removeLayer(dashBubbleLayer);
+  dashBubbleLayer = L.layerGroup();
+  const c = complaints || await loadComplaints();
+  const stats = getDistrictStats(c), maxT = Math.max(...stats.map(d=>d.total), 1);
+
+  stats.forEach(d => {
+    const hasData = d.total > 0;
+    const r = hasData ? 6 + (d.total/maxT)*26 : 5;
+    const openP = d.open/(d.total||1), resP = d.resolved/(d.total||1);
+    const color = !hasData?'#94a3b8':openP>.6?'#ef4444':resP>.6?'#22c55e':'#f59e0b';
+    const circle = L.circleMarker([d.lat,d.lng], {
+      radius:r, fillColor:color, color:'#fff', weight:1.5, fillOpacity: hasData?.85:.4
+    });
+    circle.bindPopup(`
+      <div class="popup-title"><i class="fa-solid fa-location-dot" style="color:var(--orange);margin-right:5px"></i>${d.name} District</div>
+      <div class="popup-stat"><span>Total Complaints</span><strong>${d.total}</strong></div>
+      <div class="popup-stat"><span style="color:#ef4444">Open</span><strong>${d.open}</strong></div>
+      <div class="popup-stat"><span style="color:#f59e0b">In Progress</span><strong>${d.inprogress}</strong></div>
+      <div class="popup-stat"><span style="color:#22c55e">Resolved</span><strong>${d.resolved}</strong></div>
+      ${hasData?`<button class="popup-btn" onclick="showPage('map');setTimeout(()=>drillDistrict('${d.name}'),600)"><i class='fa-solid fa-magnifying-glass me-1'></i>Drill to Ward Level</button>`:''}
+    `);
+    circle.on('mouseover', function(){ this.openPopup(); });
+    circle.addTo(dashBubbleLayer);
+  });
+  dashBubbleLayer.addTo(dashMap);
 }
 
 // ── Map ───────────────────────────────────────────────────────────────────────
