@@ -186,20 +186,20 @@ async function renderDashboard() {
     </div>`;
   }).join('') || '<p style="font-size:.8rem;color:var(--text-muted);text-align:center;padding:20px 0">No data yet</p>';
 
-  // Debt trend vertical bar chart
+  // Debt trend vertical bar chart — fills the flex container
   const dt = document.getElementById('dash-debt-trend');
   if (dt) {
     const maxDebt = Math.max(...TN_ECONOMY.map(r=>r.debt));
     dt.innerHTML = TN_ECONOMY.map(r => {
-      const h = Math.round((r.debt/maxDebt)*72);
+      const pct = Math.round((r.debt/maxDebt)*100);
       const col = r.debtGrowth>18?'var(--red)':r.debtGrowth>14?'var(--amber)':'var(--green)';
-      return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px">
-        <span style="font-size:.58rem;font-weight:700;color:${col}">+${r.debtGrowth}%</span>
-        <div style="width:100%;display:flex;align-items:flex-end;height:72px">
-          <div style="width:100%;height:${h}px;background:${col};border-radius:3px 3px 0 0;min-height:4px"></div>
+      return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:3px;min-width:0">
+        <span style="font-size:.6rem;font-weight:700;color:${col};white-space:nowrap">+${r.debtGrowth}%</span>
+        <div style="width:100%;flex:1;display:flex;align-items:flex-end">
+          <div style="width:100%;height:${pct}%;background:${col};border-radius:4px 4px 0 0;min-height:6px;transition:height .4s"></div>
         </div>
-        <span style="font-size:.58rem;color:var(--text-muted);text-align:center;line-height:1.2">${r.year.slice(2)}</span>
-        <span style="font-size:.62rem;font-weight:600;color:var(--text-primary)">₹${r.debt}L</span>
+        <span style="font-size:.6rem;color:var(--text-muted);text-align:center">${r.year.slice(2)}</span>
+        <span style="font-size:.63rem;font-weight:700;color:var(--text-primary);white-space:nowrap">₹${r.debt}L</span>
       </div>`;
     }).join('');
   }
