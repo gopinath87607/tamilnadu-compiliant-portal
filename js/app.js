@@ -476,17 +476,25 @@ async function renderDistrictsPage() {
   const stats = getDistrictStats(c).sort((a,b)=>b.total-a.total);
   const el = document.getElementById('districts-grid');
   if (!el) return;
-  el.innerHTML = stats.map(d =>
-    `<div class="col-6 col-md-4 col-lg-3">
+  el.innerHTML = stats.map(d => {
+    const resolvePct = d.total ? Math.round(d.resolved/d.total*100) : 0;
+    const barColor = resolvePct>=70?'var(--green)':resolvePct>=40?'var(--amber)':'var(--red)';
+    return `<div class="col-6 col-md-4 col-lg-3">
       <div class="district-card" onclick="viewDistrictFilter('${d.name}')">
-        <div class="d-name">${d.name}</div>
-        <div style="font-size:.72rem;color:var(--gray);margin-bottom:4px">${d.headquarters}</div>
-        <div class="d-count" style="color:${d.open>d.resolved?'var(--red)':'var(--green)'}">${d.total}</div>
-        <div style="font-size:.72rem;color:var(--gray);margin-top:3px"><span style="color:var(--red)">●</span> ${d.open} open &nbsp;<span style="color:var(--green)">●</span> ${d.resolved} done</div>
-        <div class="mini-bar" style="margin-top:7px"><div class="mini-bar-fill" style="width:${d.total?d.resolved/d.total*100:0}%;background:var(--green)"></div></div>
+        <div class="d-flex justify-content-between align-items-start mb-1">
+          <div class="d-name">${d.name}</div>
+          <span class="badge" style="background:var(--surface-2);color:var(--text-secondary);font-size:.65rem">${resolvePct}%</span>
+        </div>
+        <div class="d-hq">${d.headquarters}</div>
+        <div class="d-count" style="margin:6px 0 4px">${d.total}</div>
+        <div style="font-size:.71rem;color:var(--text-secondary);margin-bottom:6px">
+          <span style="color:var(--red);font-weight:600">${d.open}</span> open &nbsp;·&nbsp;
+          <span style="color:var(--green);font-weight:600">${d.resolved}</span> resolved
+        </div>
+        <div class="mini-bar"><div class="mini-bar-fill" style="width:${resolvePct}%;background:${barColor}"></div></div>
       </div>
-    </div>`
-  ).join('');
+    </div>`;
+  }).join('');
 }
 
 window.viewDistrictFilter = function(name) {
