@@ -168,9 +168,9 @@
         </div>
         <div class="progress-wrap"><div class="progress-fill" id="resolve-progress" style="width:0%"></div></div>
       </div>
-      <!-- Top districts -->
-      <div class="section-card" style="flex:1;overflow-y:auto">
-        <h6><i class="fa-solid fa-ranking-star" style="color:var(--orange)"></i>Top Districts by Complaints</h6>
+      <!-- Top districts — fixed height matching map -->
+      <div class="section-card" style="height:260px;overflow-y:auto">
+        <h6><i class="fa-solid fa-ranking-star" style="color:var(--orange)"></i>Top Districts</h6>
         <div id="top-districts"></div>
       </div>
     </div>
@@ -179,26 +179,25 @@
   <!-- Row 4: Category chart + Debt trend + Quick actions -->
   <div class="row g-3 mb-3">
     <div class="col-md-5">
-      <div class="section-card" style="height:280px;overflow-y:auto">
+      <div class="section-card" style="height:260px;overflow-y:auto">
         <h6><i class="fa-solid fa-chart-bar" style="color:var(--blue2)"></i>Complaints by Category</h6>
         <div id="category-chart"></div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="section-card" style="height:280px">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="section-card" style="height:260px;display:flex;flex-direction:column">
+        <div class="d-flex justify-content-between align-items-center mb-2">
           <h6 class="mb-0"><i class="fa-solid fa-coins" style="color:var(--red)"></i>State Debt Trend</h6>
           <a style="font-size:.73rem;color:var(--blue2);cursor:pointer;font-weight:600" onclick="showPage('economy')">Full View →</a>
         </div>
-        <div id="dash-debt-trend" style="display:flex;gap:4px;align-items:flex-end;padding:0 4px"></div>
-        <div style="font-size:.68rem;color:var(--text-muted);margin-top:10px;border-top:1px solid var(--border);padding-top:8px">
-          <i class="fa-solid fa-circle-info me-1" style="color:var(--blue2)"></i>
-          Bar height = debt amount · Colour = growth rate (red &gt;18%, amber &gt;14%)
+        <div id="dash-debt-trend" style="display:flex;gap:5px;align-items:flex-end;flex:1;padding:0 2px 4px"></div>
+        <div style="font-size:.66rem;color:var(--text-muted);border-top:1px solid var(--border);padding-top:7px;margin-top:4px">
+          <i class="fa-solid fa-circle-info me-1" style="color:var(--blue2)"></i>Bar = debt · Colour = growth (<span style="color:var(--red)">red</span> &gt;18%, <span style="color:var(--amber)">amber</span> &gt;14%)
         </div>
       </div>
     </div>
     <div class="col-md-3">
-      <div class="section-card" style="height:280px">
+      <div class="section-card" style="height:260px">
         <h6><i class="fa-solid fa-bolt" style="color:var(--amber)"></i>Quick Actions</h6>
         <div class="d-flex flex-column gap-2">
           <button class="quick-action-btn" onclick="showPage('submit')"><i class="fa-solid fa-circle-plus"></i>Submit Complaint</button>
