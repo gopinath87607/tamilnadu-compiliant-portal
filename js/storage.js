@@ -1,13 +1,15 @@
-// GitHub REST API storage layer with localStorage fallback
-const GH_API = 'https://api.github.com';
-const _cache = {}; // { path: { content, sha, ts } }
-const CACHE_TTL = 30000; // 30 seconds
+// Storage layer: raw GitHub (public reads) → GitHub API (writes) → localStorage fallback
+const GH_API  = 'https://api.github.com';
+const GH_RAW  = `https://raw.githubusercontent.com/${DEFAULT_OWNER}/${DEFAULT_REPO}/${DEFAULT_BRANCH}`;
 
-// ─── Low-level GitHub API ────────────────────────────────────────────────────
+const _cache   = {};
+const CACHE_TTL = 30000; // 30 s
+
+// ─── Low-level GitHub API (needs token) ─────────────────────────────────────
 
 async function _ghFetch(method, path, body = null) {
-  const { token, owner, repo, branch = 'main' } = getGHConfig();
-  const url = `${GH_API}/repos/${owner}/${repo}/contents/${path}${method==='GET'?`?ref=${branch}`:''}`;
+  const { token, owner, repo, branch } = getGHConfig();
+  const url = `${GH_API}/repos/${owner}/${repo}/contents/${path}${method === 'GET' ? `?ref=${branch}` : ''}`;
   const headers = {
     'Authorization': `Bearer ${token}`,
     'Accept': 'application/vnd.github.v3+json',
@@ -56,21 +58,20 @@ async function writeGHFile(path, content, sha, msg) {
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
   const body = { message: msg || `Portal: update ${path}`, content: encoded };
   if (sha) body.sha = sha;
-  const { branch = 'main' } = getGHConfig();
+  const { branch } = getGHConfig();
   body.branch = branch;
   const res = await _ghFetch('PUT', path, body);
-  if (_cache[path]) delete _cache[path]; // invalidate
+  if (_cache[path]) delete _cache[path];
   return res;
 }
 
-// Retry write on 409 conflict (concurrent edit)
 async function safeWriteGHFile(path, updater, msg) {
   for (let attempt = 0; attempt < 4; attempt++) {
     if (attempt > 0) await new Promise(r => setTimeout(r, 1000 * attempt));
     try {
+      if (_cache[path]) delete _cache[path];
       let { data, sha } = await readGHFile(path);
       if (!data) data = _defaultFor(path);
-      if (_cache[path]) delete _cache[path]; // force fresh read on retry
       const updated = updater(data);
       await writeGHFile(path, updated, sha, msg);
       return updated;
@@ -87,29 +88,60 @@ function _defaultFor(path) {
   return {};
 }
 
-// ─── Unified data API (GitHub → localStorage fallback) ───────────────────────
+// ─── Public raw read (no token — works on all devices for public repos) ───────
+
+async function _rawRead(filePath) {
+  try {
+    const res = await fetch(`${GH_RAW}/${filePath}?_=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+// ─── Unified data API ────────────────────────────────────────────────────────
 
 const LS_COMPLAINTS = 'tn_complaints_v2';
 const LS_MESSAGES   = 'tn_messages_v2';
 
 async function loadComplaints() {
+  // 1. Raw GitHub URL — public read, works on every device, no token needed
+  const raw = await _rawRead('data/complaints.json');
+  if (raw?.complaints) return raw.complaints;
+
+  // 2. GitHub API (token required, catches private repos or auth issues)
   if (isConfigured()) {
-    const { data } = await readGHFile('data/complaints.json');
-    if (data?.complaints) return data.complaints;
+    try {
+      const { data } = await readGHFile('data/complaints.json');
+      if (data?.complaints) return data.complaints;
+    } catch (e) { /* fall through */ }
   }
+
+  // 3. Local browser storage (offline / no network)
   return JSON.parse(localStorage.getItem(LS_COMPLAINTS) || '[]');
 }
 
 async function persistComplaints(complaints) {
+  // Always keep a local copy for offline/fast access
   localStorage.setItem(LS_COMPLAINTS, JSON.stringify(complaints));
-  if (!isConfigured()) return;
-  await safeWriteGHFile('data/complaints.json', d => ({ ...(d||{}), complaints }), 'Update complaints');
+
+  if (!isConfigured()) {
+    // Flag that local data may be out of sync
+    localStorage.setItem('tn_has_local_only', '1');
+    return;
+  }
+  localStorage.removeItem('tn_has_local_only');
+  await safeWriteGHFile('data/complaints.json', d => ({ ...(d || {}), complaints }), 'Update complaints');
 }
 
 async function loadMessages() {
+  const raw = await _rawRead('data/messages.json');
+  if (raw?.messages) return raw.messages;
+
   if (isConfigured()) {
-    const { data } = await readGHFile('data/messages.json');
-    if (data?.messages) return data.messages;
+    try {
+      const { data } = await readGHFile('data/messages.json');
+      if (data?.messages) return data.messages;
+    } catch (e) { /* fall through */ }
   }
   return JSON.parse(localStorage.getItem(LS_MESSAGES) || '[]');
 }
@@ -117,7 +149,7 @@ async function loadMessages() {
 async function persistMessage(msg) {
   if (isConfigured()) {
     await safeWriteGHFile('data/messages.json', d => {
-      const msgs = [...((d||{}).messages || []), msg].slice(-500);
+      const msgs = [...((d || {}).messages || []), msg].slice(-500);
       return { messages: msgs };
     }, 'Chat message');
   } else {
