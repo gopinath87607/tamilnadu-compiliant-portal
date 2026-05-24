@@ -474,17 +474,22 @@
             <input class="form-control" id="setup-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"/>
             <button type="button" class="input-btn" onclick="toggleTokenVis()"><i class="fa-solid fa-eye" id="token-eye"></i></button>
           </div>
-          <small style="color:var(--gray);font-size:.72rem">Create a fine-grained token with <strong>Contents: Read and Write</strong> for your repo only.</small>
+          <small style="color:var(--gray);font-size:.72rem">
+            Go to <strong>github.com → Settings → Developer settings → Personal access tokens → Fine-grained tokens</strong>.
+            Grant <strong>Contents: Read &amp; Write</strong> for the <code>tamilnadu-compiliant-portal</code> repo only.
+          </small>
         </div>
       </div>
-      <div class="col-md-6"><div class="form-group mb-0"><label>GitHub Username / Org <span style="color:red">*</span></label>
-        <input class="form-control" id="setup-owner" type="text" placeholder="your-github-username"/>
+      <div class="col-md-6"><div class="form-group mb-0">
+        <label>GitHub Username / Org <span style="color:red">*</span> <span style="font-size:.7rem;font-weight:400;color:#6b7280">(pre-filled)</span></label>
+        <input class="form-control" id="setup-owner" type="text" placeholder="gopinath87607"/>
       </div></div>
-      <div class="col-md-6"><div class="form-group mb-0"><label>Repository Name <span style="color:red">*</span></label>
+      <div class="col-md-6"><div class="form-group mb-0">
+        <label>Repository Name <span style="color:red">*</span> <span style="font-size:.7rem;font-weight:400;color:#6b7280">(pre-filled)</span></label>
         <input class="form-control" id="setup-repo" type="text" placeholder="tamilnadu-compiliant-portal"/>
       </div></div>
       <div class="col-md-4"><div class="form-group mb-0"><label>Branch</label>
-        <input class="form-control" id="setup-branch" type="text" placeholder="main" value="main"/>
+        <input class="form-control" id="setup-branch" type="text" placeholder="main"/>
       </div></div>
       <div class="col-12 info-box">
         <i class="fa-solid fa-shield-halved me-2"></i>
@@ -500,9 +505,9 @@
     <div class="mt-4">
       <h6 style="font-size:.88rem">How it works</h6>
       <ol style="font-size:.79rem;color:var(--gray);padding-left:18px;line-height:1.8">
-        <li>Create a GitHub repository (can be private)</li>
-        <li>Generate a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" style="color:var(--blue2)">fine-grained Personal Access Token</a> with <strong>Contents: Read &amp; Write</strong></li>
-        <li>Enter token, username and repo name above and click <strong>Test &amp; Connect</strong></li>
+        <li>Go to <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" style="color:var(--blue2)">GitHub → Settings → Fine-grained tokens</a></li>
+        <li>Create a token: select <strong>Only select repositories → tamilnadu-compiliant-portal</strong>, then grant <strong>Contents: Read &amp; Write</strong></li>
+        <li>Paste the token above — username and repo are already pre-filled — and click <strong>Test &amp; Connect</strong></li>
         <li>Click <strong>Initialize Data Files</strong> to create the <code>data/</code> folder structure</li>
         <li>All complaints, user accounts and chat messages will now sync to GitHub</li>
       </ol>

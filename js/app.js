@@ -50,12 +50,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('hashchange', checkHash);
   checkHash();
 
-  // Pre-fill setup form from saved config
+  // Pre-fill setup form — defaults from config.js so user only needs to paste token
   const c = getGHConfig();
-  if (c.token)  document.getElementById('setup-token').value  = c.token;
-  if (c.owner)  document.getElementById('setup-owner').value  = c.owner;
-  if (c.repo)   document.getElementById('setup-repo').value   = c.repo;
-  if (c.branch) document.getElementById('setup-branch').value = c.branch;
+  document.getElementById('setup-token').value  = c.token  || '';
+  document.getElementById('setup-owner').value  = c.owner  || DEFAULT_OWNER;
+  document.getElementById('setup-repo').value   = c.repo   || DEFAULT_REPO;
+  document.getElementById('setup-branch').value = c.branch || DEFAULT_BRANCH;
 
   // Populate district dropdowns
   TN_DISTRICTS.forEach(d => {
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 function showPage(page) {
   // Auth guards
   if ((page === 'my-complaints' || page === 'chat') && !requireLogin()) return;
-  if (page === 'setup' && !isAdmin()) { showToast('Admin access required.'); return; }
+  // setup page is open to all — anyone can configure their sync token
 
   currentPage = page;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -630,7 +630,11 @@ window.handleSubmitComplaint = async function(e) {
     await persistComplaints(all);
     f.reset();
     resetSubmitForm();
-    showToast(`✓ Complaint #${newId} submitted successfully!`);
+    if (isConfigured()) {
+      showToast(`✓ Complaint #${newId} submitted & synced across all devices!`);
+    } else {
+      showToast(`✓ Complaint #${newId} saved. Add a GitHub token in Data Sync to share it across devices.`);
+    }
     if (isLoggedIn()) showPage('my-complaints');
     else showPage('dashboard');
   } catch (err) {
