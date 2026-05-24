@@ -503,12 +503,76 @@ function geoLocateMe() {
   );
 }
 
+// ── Attachment upload ─────────────────────────────────────────────────────────
+let attachedFiles = [];
+
+window.handleAttachDrop = function(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag-over');
+  handleAttachFiles(e.dataTransfer.files);
+};
+
+window.handleAttachSelect = function(files) { handleAttachFiles(files); };
+
+function handleAttachFiles(files) {
+  const MAX_FILES = 5, MAX_BYTES = 10 * 1024 * 1024;
+  for (const file of Array.from(files)) {
+    if (attachedFiles.length >= MAX_FILES) { showToast(`Max ${MAX_FILES} files allowed.`); break; }
+    if (!/^(image|video)\//.test(file.type)) { showToast(`${file.name}: only images/videos allowed.`); continue; }
+    if (file.size > MAX_BYTES) { showToast(`${file.name} exceeds 10 MB limit.`); continue; }
+    if (attachedFiles.find(f => f.name === file.name && f.size === file.size)) continue;
+    attachedFiles.push(file);
+  }
+  document.getElementById('attach-input').value = '';
+  renderAttachPreviews();
+}
+
+function renderAttachPreviews() {
+  const container = document.getElementById('attach-preview');
+  if (!container) return;
+  container.innerHTML = '';
+  attachedFiles.forEach((file, i) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'attach-thumb';
+    if (file.type.startsWith('image/')) {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      img.alt = file.name;
+      thumb.appendChild(img);
+    } else {
+      const vd = document.createElement('div');
+      vd.className = 'video-thumb';
+      vd.innerHTML = `<i class="fa-solid fa-film"></i><span>${file.name.length > 12 ? file.name.slice(0,10)+'…' : file.name}</span>`;
+      thumb.appendChild(vd);
+    }
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'attach-remove';
+    btn.title = 'Remove';
+    btn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    btn.onclick = () => { attachedFiles.splice(i, 1); renderAttachPreviews(); };
+    thumb.appendChild(btn);
+    container.appendChild(thumb);
+  });
+}
+
+async function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve({ name: file.name, type: file.type, data: reader.result });
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function resetSubmitForm() {
   clearGeoPin();
   document.getElementById('submit-taluk').innerHTML = '<option value="">-- Select Taluk --</option>';
   document.getElementById('submit-ward').innerHTML  = '<option value="">-- Select Ward --</option>';
   document.getElementById('pin-auto').style.display = 'none';
   if (geoMap) geoMap.setView([10.75, 78.5], 7);
+  attachedFiles = [];
+  renderAttachPreviews();
 }
 
 window.handleSubmitComplaint = async function(e) {
@@ -543,13 +607,14 @@ window.handleSubmitComplaint = async function(e) {
   }
 
   try {
+    const attachments = attachedFiles.length ? await Promise.all(attachedFiles.map(readFileAsBase64)) : [];
     const all = await loadComplaints();
     const newId = Math.max(...all.map(x=>x.id), 0) + 1;
     const now = new Date().toISOString();
     // If no geo set, use district center with jitter
     const dist = TN_DISTRICTS.find(x=>x.name===complaint.district);
     if (!complaint.lat && dist) { complaint.lat = dist.lat+(Math.random()-.5)*.25; complaint.lng = dist.lng+(Math.random()-.5)*.25; }
-    const full = { ...complaint, id:newId, status:'open', createdAt:now, updatedAt:now, resolution:'', updates:[] };
+    const full = { ...complaint, id:newId, status:'open', createdAt:now, updatedAt:now, resolution:'', updates:[], attachments };
     all.push(full);
     await persistComplaints(all);
     f.reset();
@@ -830,6 +895,20 @@ window.openUpdateModal = async function(id) {
   document.getElementById('modal-badges').innerHTML = `<span class="badge badge-${c.status}" style="margin-right:5px">${STATUSES[c.status].label}</span>${priBadge(c.priority)}`;
   document.getElementById('modal-status').value = c.status;
   document.getElementById('modal-resolution').value = c.resolution||'';
+  const attBox = document.getElementById('modal-attachments');
+  const attPrev = document.getElementById('modal-attach-preview');
+  if (c.attachments && c.attachments.length) {
+    attPrev.innerHTML = c.attachments.map(a => {
+      if (a.type.startsWith('image/')) {
+        return `<div class="attach-thumb"><img src="${a.data}" alt="${a.name}" style="cursor:pointer" onclick="window.open(this.src)"/></div>`;
+      }
+      return `<div class="attach-thumb"><div class="video-thumb"><i class="fa-solid fa-film"></i><span>${a.name.length>12?a.name.slice(0,10)+'…':a.name}</span></div></div>`;
+    }).join('');
+    attBox.style.display = '';
+  } else {
+    attBox.style.display = 'none';
+    attPrev.innerHTML = '';
+  }
   document.getElementById('resolve-modal').classList.add('open');
 };
 

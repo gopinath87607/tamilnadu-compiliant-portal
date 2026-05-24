@@ -322,6 +322,17 @@
         <input type="hidden" id="submit-lng"/>
       </div>
 
+      <div class="col-12"><span class="form-section" style="margin-top:6px">Evidence / Attachments <span style="font-size:.7rem;font-weight:400;color:#9ca3af">(optional — photos or short videos)</span></span></div>
+      <div class="col-12">
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('attach-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleAttachDrop(event)">
+          <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+          <div class="upload-hint">Drag &amp; drop photos/videos here, or <span class="upload-link">browse files</span></div>
+          <div class="upload-sub">JPG, PNG, GIF, MP4, MOV · Max 5 files · 10 MB each</div>
+          <input type="file" id="attach-input" accept="image/*,video/*" multiple style="display:none" onchange="handleAttachSelect(this.files)"/>
+        </div>
+        <div class="attach-preview" id="attach-preview"></div>
+      </div>
+
       <div class="col-12"><span class="form-section" style="margin-top:6px">Your Details <span style="font-size:.7rem;font-weight:400;color:#9ca3af">(optional — helps with follow-up)</span></span></div>
       <div class="col-md-4"><div class="form-group mb-0"><label>Your Name</label>
         <input class="form-control" id="submit-name" type="text" placeholder="Full name"/>
@@ -574,6 +585,10 @@
       <div style="font-weight:700;font-size:.9rem;color:var(--text-primary)" id="modal-title"></div>
       <div style="font-size:.76rem;color:var(--text-secondary);margin-top:3px" id="modal-location"></div>
       <div style="margin-top:6px" id="modal-badges"></div>
+    </div>
+    <div id="modal-attachments" style="display:none;margin-bottom:14px">
+      <label style="font-size:.75rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.04em">Attachments</label>
+      <div class="attach-preview" id="modal-attach-preview"></div>
     </div>
     <div class="form-group"><label>Status</label>
       <select class="form-control" id="modal-status">
