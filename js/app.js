@@ -518,7 +518,8 @@ function handleAttachFiles(files) {
   const MAX_FILES = 5, MAX_BYTES = 10 * 1024 * 1024;
   for (const file of Array.from(files)) {
     if (attachedFiles.length >= MAX_FILES) { showToast(`Max ${MAX_FILES} files allowed.`); break; }
-    if (!/^(image|video)\//.test(file.type)) { showToast(`${file.name}: only images/videos allowed.`); continue; }
+    const ALLOWED = ['image/jpeg','image/png','image/gif','image/webp','video/mp4','video/quicktime','video/webm'];
+    if (!ALLOWED.includes(file.type)) { showToast(`${file.name}: unsupported format. Use JPG, PNG, GIF, WEBP, MP4, MOV or WEBM.`); continue; }
     if (file.size > MAX_BYTES) { showToast(`${file.name} exceeds 10 MB limit.`); continue; }
     if (attachedFiles.find(f => f.name === file.name && f.size === file.size)) continue;
     attachedFiles.push(file);

@@ -816,6 +816,26 @@ body {
 .upload-link { color: var(--blue2); font-weight: 600; text-decoration: underline; }
 .upload-sub { font-size: .75rem; color: var(--text-muted); margin-top: 4px; }
 
+.attach-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-xs);
+  padding: 10px 14px;
+  margin-top: 10px;
+  font-size: .78rem;
+  color: #92400e;
+  line-height: 1.55;
+}
+.attach-warning i {
+  color: #d97706;
+  font-size: 1rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
 .attach-preview {
   display: flex;
   flex-wrap: wrap;

@@ -327,8 +327,16 @@
         <div class="upload-zone" id="upload-zone" onclick="document.getElementById('attach-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleAttachDrop(event)">
           <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
           <div class="upload-hint">Drag &amp; drop photos/videos here, or <span class="upload-link">browse files</span></div>
-          <div class="upload-sub">JPG, PNG, GIF, MP4, MOV · Max 5 files · 10 MB each</div>
-          <input type="file" id="attach-input" accept="image/*,video/*" multiple style="display:none" onchange="handleAttachSelect(this.files)"/>
+          <div class="upload-sub">JPG, PNG, GIF, WEBP · MP4, MOV, WEBM &nbsp;|&nbsp; Max <strong>5 files</strong> &nbsp;|&nbsp; Max <strong>10 MB per file</strong></div>
+          <input type="file" id="attach-input" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm" multiple style="display:none" onchange="handleAttachSelect(this.files)"/>
+        </div>
+        <div class="attach-warning">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <div>
+            <strong>Supported formats:</strong> Images — JPG, PNG, GIF, WEBP &nbsp;·&nbsp; Videos — MP4, MOV, WEBM<br/>
+            <strong>Size limit:</strong> Max 10 MB per file &nbsp;·&nbsp; Max 5 files per complaint<br/>
+            Files outside these limits will be rejected automatically.
+          </div>
         </div>
         <div class="attach-preview" id="attach-preview"></div>
       </div>
