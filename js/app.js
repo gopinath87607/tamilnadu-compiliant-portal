@@ -110,8 +110,18 @@ function showPage(page) {
   }
 }
 
+// ── Sync banner visibility ────────────────────────────────────────────────────
+function updateSyncUI() {
+  const configured = isConfigured();
+  const banner = document.getElementById('sync-warning-banner');
+  const label  = document.getElementById('nav-sync-label');
+  if (banner) banner.style.display = configured ? 'none' : 'flex';
+  if (label)  label.textContent = configured ? 'Data Sync ✓' : 'Data Sync ⚠';
+}
+
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 async function renderDashboard() {
+  updateSyncUI();
   const c = await loadComplaints();
   const total = c.length, open = c.filter(x=>x.status==='open').length,
         inprog = c.filter(x=>x.status==='inprogress').length,
@@ -825,9 +835,9 @@ function renderSetupPage() {
   const txt = document.getElementById('setup-status-text');
   if (!bar||!txt) return;
   if (isConfigured()) {
-    bar.className='setup-status connected'; txt.textContent='GitHub storage configured and active.';
+    bar.className='setup-status connected'; txt.textContent='✓ GitHub Sync active — data is shared across all devices and browsers.';
   } else {
-    bar.className='setup-status unconfigured'; txt.textContent='Not configured — data stored in browser localStorage only.';
+    bar.className='setup-status unconfigured'; txt.textContent='⚠ Not synced — data lives in this browser only. Mobile and desktop cannot see each other\'s complaints. Connect GitHub below to fix this.';
   }
 }
 
@@ -880,10 +890,11 @@ function _syncGHBadge() {
   const el = document.getElementById('gh-status-badge');
   if (!el) return;
   if (isConfigured()) {
-    el.innerHTML='<span class="cfg-badge"><i class="fa-solid fa-cloud me-1"></i>GitHub Sync</span>';
+    el.innerHTML='<span class="cfg-badge"><i class="fa-solid fa-cloud me-1"></i>Synced</span>';
   } else {
-    el.innerHTML='<span class="cfg-badge uncfg"><i class="fa-solid fa-hard-drive me-1"></i>Local Only</span>';
+    el.innerHTML='<span class="cfg-badge uncfg"><i class="fa-solid fa-triangle-exclamation me-1"></i>Not Synced</span>';
   }
+  updateSyncUI();
 }
 
 // ── Update Status Modal (admin / all-complaints view) ─────────────────────────
