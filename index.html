@@ -40,6 +40,10 @@
     <span class="nav-user-info" id="nav-user-info" style="display:none"></span>
     <a class="nav-link" id="nav-login" data-page="login"><i class="fa-solid fa-right-to-bracket"></i> Login / Register</a>
     <a class="nav-link" id="nav-logout" style="display:none" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+    <div class="nav-divider"></div>
+    <div class="nav-section">Admin</div>
+    <a class="nav-link" data-page="setup"><i class="fa-solid fa-rotate"></i> <span id="nav-sync-label">Data Sync</span></a>
   </nav>
   <div class="sidebar-footer">&copy; <span id="sidebar-year"></span> Govt. of Tamil Nadu<br/>All rights reserved</div>
 </aside>
@@ -51,7 +55,7 @@
     <span id="page-title" class="page-title">Dashboard</span>
   </div>
   <div class="topbar-right">
-    <span id="gh-status-badge"></span>
+    <span id="gh-status-badge" onclick="showPage('setup')" style="cursor:pointer" title="Click to manage data sync"></span>
     <div id="topbar-user-wrap" class="topbar-user-chip" style="display:none">
       <i class="fa-solid fa-circle-user"></i>
       <span id="topbar-user"></span>
@@ -70,6 +74,17 @@
 
 <!-- ── DASHBOARD ─────────────────────────────────────────────────────── -->
 <section id="page-dashboard" class="page active">
+
+  <!-- Sync warning banner (shown only when not configured) -->
+  <div id="sync-warning-banner" class="sync-banner" style="display:none">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <div>
+      <strong>Data not synced across devices.</strong>
+      Complaints submitted on this device are saved in this browser only — they won't appear on other phones or computers.
+      <a class="sync-banner-link" onclick="showPage('setup')">Set up GitHub Sync →</a>
+    </div>
+    <button class="sync-banner-close" onclick="this.parentElement.style.display='none'" title="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+  </div>
 
   <!-- Row 1: Complaint stats -->
   <div class="row g-3 mb-3">
@@ -443,8 +458,12 @@
 <!-- ── SETUP / CONFIG ─────────────────────────────────────────────────── -->
 <section id="page-setup" class="page">
   <div class="setup-card section-card">
-    <h6 style="font-size:1rem"><i class="fa-solid fa-gear me-2" style="color:var(--orange)"></i>GitHub Storage Setup</h6>
-    <p style="font-size:.8rem;color:var(--gray);margin-bottom:18px">Connect a GitHub repository to persist all complaints, user accounts, and chat messages. Data is stored as JSON in <code>data/</code> folder of your repo.</p>
+    <h6 style="font-size:1rem"><i class="fa-solid fa-rotate me-2" style="color:var(--orange)"></i>Data Sync — Connect GitHub</h6>
+    <div class="info-box" style="margin-bottom:16px">
+      <i class="fa-solid fa-circle-info me-2"></i>
+      <span>Without sync, complaints submitted on your <strong>phone</strong> won't appear on your <strong>computer</strong> (and vice versa) — each device stores data in its own browser.
+      Connecting a GitHub repository makes all data shared and visible everywhere in real time.</span>
+    </div>
 
     <div id="setup-status-bar" class="setup-status unconfigured"><i class="fa-solid fa-circle-info"></i><span id="setup-status-text">Not configured — using local browser storage only</span></div>
 
